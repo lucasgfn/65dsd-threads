@@ -1,2 +1,13 @@
+#OS
 .DS_Store
 
+# Compiladores
+target/
+
+# Config IDEs
+*.iml
+.idea/
+.vscode/
+.classpath
+.project
+.settings
