@@ -13,7 +13,7 @@ public class MalhaReader {
     private Directions direcao;
 
     public MalhaBlocos[][] lerInstancias(String path) throws IOException {
-        try(BufferedReader buffer = new BufferedReader(new FileReader(path))){
+        try(BufferedReader buffer = new BufferedReader(new FileReader("./65dsd-threads/instances/"+path))){
 
             qntLinhas = Integer.parseInt(buffer.readLine().trim());
             qntColunas= Integer.parseInt(buffer.readLine().trim());
@@ -39,7 +39,7 @@ public class MalhaReader {
             }
             return montarMatriz;
         }catch (IOException e){
-            throw new IOException("Erro na leitura do arquivo"+ path, e);
+            throw new IOException("Erro na leitura do arquivo: "+ path, e);
         }
 
 
