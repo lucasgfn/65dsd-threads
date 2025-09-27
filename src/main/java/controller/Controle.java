@@ -3,15 +3,15 @@ package controller;
 import model.MalhaBlocos;
 import model.MalhaViaria;
 import util.Directions;
-import view.View;
+import view.SimuladorTrafegoView;
 import java.io.IOException;
 
 public class Controle {
 
-    private View view;
+    private SimuladorTrafegoView view;
     private MalhaViaria malhaViaria;
 
-    public void setView(View view) {
+    public void setView(SimuladorTrafegoView view) {
         this.view = view;
     }
 
@@ -26,7 +26,7 @@ public class Controle {
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo da malha: " + e.getMessage());
             this.malhaViaria = null; // Garante que a malha inválida não seja usada
-            this.view.getTextArea().setText(""); // Limpa a tela na view
+            this.view.atualizarMalha(""); // Limpa a tela na view
             return false; // Retorna false em caso de erro
         }
     }
@@ -81,7 +81,7 @@ public class Controle {
             }
             malhaComoTexto.append("\n");
         }
-        view.getTextArea().setText(malhaComoTexto.toString());
+        view.atualizarMalha(malhaComoTexto.toString());
     }
 
     // --- Métodos de simulação ---
