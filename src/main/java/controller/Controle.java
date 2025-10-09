@@ -1,5 +1,6 @@
 package controller;
 
+import model.Carro;
 import model.MalhaBlocos;
 import model.MalhaViaria;
 import util.Directions;
@@ -21,7 +22,7 @@ public class Controle {
             this.malhaViaria = new MalhaViaria(pathDoArquivo, 20); // 20 é um exemplo de limite de veículos
             System.out.println("Malha viária lida e criada com sucesso!");
             this.exibirMalha();
-            return true; // Retorna true em caso de sucesso
+            return true;
 
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo da malha: " + e.getMessage());
@@ -44,9 +45,9 @@ public class Controle {
                 MalhaBlocos bloco = malha[i][j];
 
                 if (bloco == null || bloco.getDirecao() == Directions.VAZIO) {
-                    malhaComoTexto.append("  ");
+                    malhaComoTexto.append(" ");
                 } else if (bloco.getCarro() != null) {
-                    malhaComoTexto.append("C ");
+                    malhaComoTexto.append("\uD83D\uDE98 ");
                 } else {
                     switch (bloco.getDirecao()) {
                         case ESTRADA_CIMA: case CRUZAMENTO_CIMA:
@@ -84,10 +85,40 @@ public class Controle {
         view.atualizarMalha(malhaComoTexto.toString());
     }
 
-    // --- Métodos de simulação ---
     public void iniciarMonitor(int intervalo, int qtdCarros) {
-        System.out.println("Monitor iniciado com intervalo: " + intervalo + " e carros: " + qtdCarros);
+        if (malhaViaria == null) {
+            System.out.println("DEBUG: Malha Viária é nula, não posso criar carros.");
+            return;
+        }
+
+        System.out.println("DEBUG: Método iniciarMonitor chamado. Procurando por " + qtdCarros + " entradas...");
+
+        MalhaBlocos[][] malha = malhaViaria.getMalha();
+
+        int criados = 0;
+        for (int i = 0; i < malha.length && criados < qtdCarros; i++) {
+            for (int j = 0; j < malha[i].length && criados < qtdCarros; j++) {
+                MalhaBlocos bloco = malha[i][j];
+
+                // A condição crucial está aqui:
+                if (bloco != null && bloco.isEntrada() && bloco.getCarro() == null) {
+
+                    System.out.println("DEBUG: Entrada encontrada em [" + i + "][" + j + "]. Criando carro...");
+
+                    Carro carro = new Carro("Carro" + criados, malhaViaria, bloco, this);
+                    bloco.setCarro(carro);
+                    carro.start();
+                    criados++;
+                }
+            }
+        }
+
+        if (criados == 0) {
+            System.out.println("DEBUG: A simulação iniciou, mas NENHUMA entrada válida foi encontrada na malha!");
+        }
     }
+
+    // --- Métodos de simulação ---
     public void iniciarSemaforo(int intervalo, int qtdCarros) {
         System.out.println("Semáforo iniciado com intervalo: " + intervalo + " e carros: " + qtdCarros);
     }

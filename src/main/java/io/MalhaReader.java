@@ -12,7 +12,7 @@ public class MalhaReader {
     private Directions direcao;
 
     public MalhaBlocos[][] lerInstancias(String path) throws IOException {
-        try (BufferedReader buffer = new BufferedReader(new FileReader(path))) { // <-- CORRIGIDO
+        try (BufferedReader buffer = new BufferedReader(new FileReader(path))) {
 
             qntLinhas = Integer.parseInt(buffer.readLine().trim());
             qntColunas = Integer.parseInt(buffer.readLine().trim());
