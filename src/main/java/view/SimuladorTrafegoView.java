@@ -95,6 +95,7 @@ public class SimuladorTrafegoView extends JFrame {
         btnEncerrarInsercao.addActionListener(e -> controle.encerrarInsercao());
         btnEncerrarSimulacao.addActionListener(e -> {
             controle.encerrarSimulacao();
+            atualizarMalha(" ");
         });
     }
 
