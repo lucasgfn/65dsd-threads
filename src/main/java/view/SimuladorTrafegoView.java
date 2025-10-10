@@ -11,7 +11,6 @@ public class SimuladorTrafegoView extends JFrame {
 
     private Controle controle;
 
-    // Componentes da interface
     private JTextField txtCaminhoArquivo, txtQtdVeiculos, txtIntervalo;
     private JButton btnSelecionarArquivo, btnIniciarSimulacao, btnEncerrarInsercao, btnEncerrarSimulacao;
     private JRadioButton rbSemaforo, rbMonitor;
@@ -95,7 +94,7 @@ public class SimuladorTrafegoView extends JFrame {
         btnEncerrarInsercao.addActionListener(e -> controle.encerrarInsercao());
         btnEncerrarSimulacao.addActionListener(e -> {
             controle.encerrarSimulacao();
-            atualizarMalha(" ");
+            atualizarMalha("   ");
         });
     }
 
