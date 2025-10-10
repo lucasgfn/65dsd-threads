@@ -7,16 +7,16 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class MalhaReader {
+
     private int qntLinhas;
     private int qntColunas;
     private Directions direcao;
 
-    public MalhaBlocos[][] lerInstancias(String path) throws IOException {
+    public MalhaBlocos[][] lerInstancias(String path, boolean usarSemaforo) throws IOException {
         try (BufferedReader buffer = new BufferedReader(new FileReader(path))) {
 
             qntLinhas = Integer.parseInt(buffer.readLine().trim());
             qntColunas = Integer.parseInt(buffer.readLine().trim());
-
             MalhaBlocos[][] montarMatriz = new MalhaBlocos[qntLinhas][qntColunas];
 
             for (int i = 0; i < qntLinhas; i++) {
@@ -29,12 +29,11 @@ public class MalhaReader {
                     boolean entrada = ehEntrada(i, j);
                     boolean saida = ehSaida(i, j);
 
-                    montarMatriz[i][j] = new MalhaBlocos(entrada, saida, direcao, i, j);
+                    montarMatriz[i][j] = new MalhaBlocos(entrada, saida, direcao, i, j, usarSemaforo);
                 }
             }
             return montarMatriz;
         } catch (IOException | NumberFormatException | NullPointerException e) {
-            // Captura diferentes tipos de erro (arquivo não encontrado, formato inválido, etc)
             throw new IOException("Erro na leitura ou processamento do arquivo: " + path, e);
         }
     }

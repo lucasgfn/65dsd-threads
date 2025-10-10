@@ -1,11 +1,7 @@
 package model;
 
 import controller.Controle;
-import util.Directions;
-import model.MalhaBlocos;
-import model.MalhaViaria;
-
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public class Carro extends Thread {
 
@@ -37,35 +33,38 @@ public class Carro extends Thread {
     }
 
     private void mover() throws InterruptedException {
-        MalhaBlocos proximoBloco = escolherProximoBloco();
+        MalhaBlocos proximo = escolherProximoBloco();
+        if (proximo == null) return;
 
-        if (proximoBloco == null) {
-            parar();
-            return;
+        // Controle Semáforo ou Monitor
+        if (proximo.isCruzamento()) {
+            if (proximo.isUsarSemaforo()) {
+                if (!proximo.getSemaphore().tryAcquire(50, TimeUnit.MILLISECONDS)) return;
+            } else {
+                proximo.entrarMonitor();
+            }
         }
 
-        Semaphore semaforo = proximoBloco.getSemaphore();
-        if (semaforo != null) {
-            semaforo.acquire();
-        }
-
-        synchronized (proximoBloco) {
-            if (proximoBloco.getCarro() == null) {
-                Semaphore semaforoBlocoAtual = posicaoAtual.getSemaphore();
-
+        synchronized (posicaoAtual) {
+            if (proximo.getCarro() == null) {
                 posicaoAtual.setCarro(null);
-                proximoBloco.setCarro(this);
-                posicaoAtual = proximoBloco;
-
-                if (semaforoBlocoAtual != null) {
-                    semaforoBlocoAtual.release();
-                }
+                proximo.setCarro(this);
+                posicaoAtual = proximo;
             }
         }
 
         if (posicaoAtual.isSaida()) {
-            posicaoAtual.setCarro(null);
             parar();
+            posicaoAtual.setCarro(null);
+            if (proximo.isCruzamento()) {
+                if (proximo.isUsarSemaforo()) proximo.getSemaphore().release();
+                else proximo.sairMonitor();
+            }
+        }
+
+        if (proximo.isCruzamento() && !posicaoAtual.isSaida()) {
+            if (proximo.isUsarSemaforo()) proximo.getSemaphore().release();
+            else proximo.sairMonitor();
         }
     }
 
@@ -73,35 +72,17 @@ public class Carro extends Thread {
         int i = posicaoAtual.getIdxLinha();
         int j = posicaoAtual.getIdxColuna();
         MalhaBlocos[][] matriz = malha.getMalha();
-        Directions d = posicaoAtual.getDirecao();
+        var d = posicaoAtual.getDirecao();
 
-        MalhaBlocos proximo = null;
-
-        if (d.CIMA == 1 && i - 1 >= 0) {
-            proximo = matriz[i - 1][j];
-            if(proximo.getCarro() == null) return proximo;
-        }
-        if (d.BAIXO == 1 && i + 1 < matriz.length) {
-            proximo = matriz[i + 1][j];
-            if(proximo.getCarro() == null) return proximo;
-        }
-        if (d.DIREITA == 1 && j + 1 < matriz[i].length) {
-            proximo = matriz[i][j + 1];
-            if(proximo.getCarro() == null) return proximo;
-        }
-        if (d.ESQUERDA == 1 && j - 1 >= 0) {
-            proximo = matriz[i][j - 1];
-            if(proximo.getCarro() == null) return proximo;
-        }
+        // Movimentos simples
+        if (d.CIMA == 1 && i - 1 >= 0 && matriz[i-1][j].getCarro() == null) return matriz[i-1][j];
+        if (d.BAIXO == 1 && i + 1 < matriz.length && matriz[i+1][j].getCarro() == null) return matriz[i+1][j];
+        if (d.DIREITA == 1 && j + 1 < matriz[i].length && matriz[i][j+1].getCarro() == null) return matriz[i][j+1];
+        if (d.ESQUERDA == 1 && j - 1 >= 0 && matriz[i][j-1].getCarro() == null) return matriz[i][j-1];
 
         return null;
     }
 
-    public void parar() {
-        rodando = false;
-    }
-
-    public String getNome() {
-        return nome;
-    }
+    public void parar() { rodando = false; }
+    public String getNome() { return nome; }
 }
