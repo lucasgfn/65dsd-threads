@@ -1,6 +1,8 @@
 package model;
 
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
 import util.Directions;
 
 public class MalhaBlocos {
@@ -58,4 +60,7 @@ public class MalhaBlocos {
             monitor.notify();
         }
     }
+
+
+
 }

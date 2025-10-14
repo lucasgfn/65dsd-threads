@@ -19,4 +19,6 @@ public class MalhaViaria {
     public MalhaBlocos[][] getMalha() { return malha; }
     public int getQntLimiteVeiculos() { return qntLimiteVeiculos; }
     public boolean isUsarSemaforo() { return usarSemaforo; }
+
+
 }

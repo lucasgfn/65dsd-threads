@@ -11,20 +11,26 @@ public class Carro extends Thread {
 
     private final MalhaViaria malha;
     private MalhaBlocos posicaoAtual;
+    private final int idCarro;
     private final String nome;
     private final Controle controle;
     private boolean rodando = true;
     private final int velocidade;
     private final Random random = new Random();
 
-    public Carro(String nome, MalhaViaria malha, MalhaBlocos posicaoInicial, Controle controle) {
+    public Carro(int idCarro, String nome, MalhaViaria malha, MalhaBlocos posicaoInicial, Controle controle) {
         this.nome = nome;
+        this.idCarro = idCarro;
         this.malha = malha;
         this.posicaoAtual = posicaoInicial;
         this.controle = controle;
         posicaoInicial.setCarro(this);
         //velocidades diferentes
         this.velocidade = 400 + random.nextInt(500);
+    }
+
+    public int getIdCarro() {
+        return idCarro;
     }
 
     @Override

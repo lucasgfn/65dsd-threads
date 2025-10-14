@@ -14,6 +14,8 @@ public class Controle {
     private MalhaViaria malhaViaria;
     private boolean usarSemaforo = true;
     private int maxVeiculos = 10;
+    private final List<Integer> idDisponiveis = new ArrayList<>();
+
     private int intervaloInsercao = 500; // ms
 
     private final List<Carro> carros = new ArrayList<>();
@@ -22,7 +24,6 @@ public class Controle {
 
     public void setView(SimuladorTrafegoView view) { this.view = view; }
     public void setModoControle(boolean semaforo) { this.usarSemaforo = semaforo; }
-    public void setMaxVeiculos(int max) { this.maxVeiculos = max; }
     public void setIntervaloInsercao(int intervalo) { this.intervaloInsercao = intervalo; }
 
     public boolean criarMalha(String path) {
@@ -48,23 +49,29 @@ public class Controle {
             for (MalhaBlocos bloco : linha) {
                 String symbol = " ";
                 if (bloco == null || bloco.getDirecao() == null) symbol = " ";
-                else if (bloco.getCarro() != null) symbol = "\uD83D\uDE98";
+                else if (bloco.getCarro() != null) {
+                    //symbol = "\uD83D\uDE98" + bloco.getCarro().getIdCarro();
+                    int numero = bloco.getCarro().getIdCarro();
+                    symbol = String.format("🚘%02d", numero);
+
+                }
                 else switch (bloco.getDirecao()) {
-                        case ESTRADA_CIMA, CRUZAMENTO_CIMA -> symbol = "↑";
-                        case ESTRADA_BAIXO, CRUZAMENTO_BAIXO -> symbol = "↓";
-                        case ESTRADA_ESQUERDA, CRUZAMENTO_ESQUERDA -> symbol = "←";
-                        case ESTRADA_DIREITA, CRUZAMENTO_DIREITA -> symbol = "→";
-                        case CRUZAMENTO_CIMA_DIREITA -> symbol = "╔";
-                        case CRUZAMENTO_CIMA_ESQUERDA -> symbol = "╗";
-                        case CRUZAMENTO_BAIXO_DIREITA -> symbol = "╚";
-                        case CRUZAMENTO_BAIXO_ESQUERDA -> symbol = "╝";
-                        default -> symbol = "·";
+                        case ESTRADA_CIMA, CRUZAMENTO_CIMA -> symbol = " ↑";
+                        case ESTRADA_BAIXO, CRUZAMENTO_BAIXO -> symbol = " ↓";
+                        case ESTRADA_ESQUERDA, CRUZAMENTO_ESQUERDA -> symbol = " ←";
+                        case ESTRADA_DIREITA, CRUZAMENTO_DIREITA -> symbol = " →";
+                        case CRUZAMENTO_CIMA_DIREITA -> symbol = " ╔";
+                        case CRUZAMENTO_CIMA_ESQUERDA -> symbol = " ╗";
+                        case CRUZAMENTO_BAIXO_DIREITA -> symbol = " ╚";
+                        case CRUZAMENTO_BAIXO_ESQUERDA -> symbol = " ╝";
+                        default -> symbol = "#####";
                     }
-                sb.append(String.format("%-2s", symbol));
+                sb.append(String.format("%-5s", symbol));
             }
             sb.append("\n");
         }
         view.atualizarMalha(sb.toString());
+
     }
 
     // inserção de veículos
@@ -94,7 +101,10 @@ public class Controle {
             for (int j = 0; j < malha[i].length; j++) {
                 MalhaBlocos bloco = malha[i][j];
                 if (bloco != null && bloco.isEntrada() && bloco.getCarro() == null) {
-                    Carro carro = new Carro("Carro" + carros.size(), malhaViaria, bloco, this);
+                    int idDisponivel = pegarNumeroDisponivel();
+                    if (idDisponivel == -1) return false;
+
+                    Carro carro = new Carro(idDisponivel, "Carro" + carros.size(), malhaViaria, bloco, this);
                     bloco.setCarro(carro);
                     carros.add(carro);
                     carro.start();
@@ -121,6 +131,24 @@ public class Controle {
     public void removerVeiculo(Carro carro) {
         synchronized (carros) {
             carros.remove(carro);
+            liberarNumero(carro.getIdCarro());
         }
+    }
+
+    public void setMaxVeiculos(int max) {
+        this.maxVeiculos = max;
+        idDisponiveis.clear();
+        for (int i = 1; i <= maxVeiculos; i++) {
+            idDisponiveis.add(i);
+        }
+    }
+
+    private int pegarNumeroDisponivel() {
+        if (idDisponiveis.isEmpty()) return -1; // nenhum número disponível
+        return idDisponiveis.remove(0);
+    }
+
+    private void liberarNumero(int numero) {
+        idDisponiveis.add(numero);
     }
 }

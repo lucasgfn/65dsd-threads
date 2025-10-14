@@ -51,7 +51,7 @@ public class SimuladorTrafegoView extends JFrame {
         grupo.add(rbSemaforo);
         grupo.add(rbMonitor);
 
-        areaMalha = new JTextArea(30, 70);
+        areaMalha = new JTextArea(30, 125);
         areaMalha.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
         areaMalha.setEditable(false);
         scrollPaneMalha = new JScrollPane(areaMalha);
