@@ -6,6 +6,8 @@ import model.MalhaViaria;
 import view.SimuladorTrafegoView;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Controle {
@@ -14,7 +16,7 @@ public class Controle {
     private MalhaViaria malhaViaria;
     private boolean usarSemaforo = true;
     private int maxVeiculos = 10;
-    private final List<Integer> idDisponiveis = new ArrayList<>();
+    private final List<Integer> idDisponiveis = Collections.synchronizedList(new ArrayList<>());
 
     private int intervaloInsercao = 500; // ms
 
