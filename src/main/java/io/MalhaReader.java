@@ -10,9 +10,8 @@ public class MalhaReader {
 
     private int qntLinhas;
     private int qntColunas;
-    private Directions direcao;
 
-    public MalhaBlocos[][] lerInstancias(String path, boolean usarSemaforo) throws IOException {
+    public MalhaBlocos[][] lerInstancias(String path) throws IOException {
         try (BufferedReader buffer = new BufferedReader(new FileReader(path))) {
 
             qntLinhas = Integer.parseInt(buffer.readLine().trim());
@@ -24,12 +23,17 @@ public class MalhaReader {
 
                 for (int j = 0; j < qntColunas; j++) {
                     int codigoDirecao = Integer.parseInt(linha[j]);
-                    direcao = Directions.existeDirecao(codigoDirecao);
+                    // 'direcao' agora é uma variável local.
+                    Directions direcao = Directions.existeDirecao(codigoDirecao);
 
-                    boolean entrada = ehEntrada(i, j);
-                    boolean saida = ehSaida(i, j);
+                    // 1. Determina se o bloco é um cruzamento a partir do nome do enum.
+                    boolean isCruzamento = direcao.name().startsWith("CRUZAMENTO");
 
-                    montarMatriz[i][j] = new MalhaBlocos(entrada, saida, direcao, i, j, usarSemaforo);
+                    // 2. O cálculo de 'entrada' foi removido, pois o novo construtor não o utiliza.
+                    boolean saida = ehSaida(i, j, direcao);
+
+                    // 3. CHAMADA AO NOVO CONSTRUTOR com os argumentos na ordem correta.
+                    montarMatriz[i][j] = new MalhaBlocos(i, j, direcao, isCruzamento, saida);
                 }
             }
             return montarMatriz;
@@ -38,21 +42,15 @@ public class MalhaReader {
         }
     }
 
-    private boolean ehEntrada(int i, int j) {
-        if ((i == 0) || (j == 0)) {
-            return (direcao == Directions.ESTRADA_BAIXO || direcao == Directions.ESTRADA_DIREITA);
-        }
-        if ((i == qntLinhas - 1) || (j == qntColunas - 1)) {
+    /**
+     * Verifica se um bloco é uma saída.
+     * Refatorado para receber a direção como parâmetro, tornando o método mais seguro.
+     */
+    private boolean ehSaida(int i, int j, Directions direcao) {
+        if ((i == 0) || (j == 0)) { // Bordas superior ou esquerda
             return (direcao == Directions.ESTRADA_CIMA || direcao == Directions.ESTRADA_ESQUERDA);
         }
-        return false;
-    }
-
-    private boolean ehSaida(int i, int j) {
-        if ((i == 0) || (j == 0)) {
-            return (direcao == Directions.ESTRADA_CIMA || direcao == Directions.ESTRADA_ESQUERDA);
-        }
-        if ((i == qntLinhas - 1) || (j == qntColunas - 1)) {
+        if ((i == qntLinhas - 1) || (j == qntColunas - 1)) { // Bordas inferior ou direita
             return (direcao == Directions.ESTRADA_BAIXO || direcao == Directions.ESTRADA_DIREITA);
         }
         return false;

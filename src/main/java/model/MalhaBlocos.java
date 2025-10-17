@@ -1,66 +1,61 @@
 package model;
 
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.atomic.AtomicReference;
 import util.Directions;
 
 public class MalhaBlocos {
 
-    private Carro carro;
-    private final boolean entrada;
-    private final boolean saida;
+    private final int idxLinha;
+    private final int idxColuna;
     private final Directions direcao;
-    private final int linha;
-    private final int coluna;
+    private final boolean isCruzamento;
+    private final boolean isSaida;
 
-    private final boolean usarSemaforo;
-    private Semaphore semaphore;
-    private final Object monitor = new Object();
-    private boolean ocupado = false;
+    // --- MUDANÇA PRINCIPAL: Usar AtomicReference para garantir a movimentação segura sem locks ---
+    private final AtomicReference<Carro> carro = new AtomicReference<>(null);
 
-    public MalhaBlocos(boolean entrada, boolean saida, Directions direcao, int linha, int coluna, boolean usarSemaforo) {
-        this.entrada = entrada;
-        this.saida = saida;
+    private boolean reservado = false;
+    private Cruzamento cruzamentoPai = null;
+
+    public MalhaBlocos(int idxLinha, int idxColuna, Directions direcao, boolean isCruzamento, boolean isSaida) {
+        this.idxLinha = idxLinha;
+        this.idxColuna = idxColuna;
         this.direcao = direcao;
-        this.linha = linha;
-        this.coluna = coluna;
-        this.usarSemaforo = usarSemaforo;
-
-        if (isCruzamento() && usarSemaforo) {
-            this.semaphore = new Semaphore(1);
-        }
+        this.isCruzamento = isCruzamento;
+        this.isSaida = isSaida;
     }
 
-    public synchronized Carro getCarro() { return carro; }
-    public synchronized void setCarro(Carro carro) { this.carro = carro; }
 
-    public boolean isEntrada() { return entrada; }
-    public boolean isSaida() { return saida; }
+    public Carro getCarro() {
+        return carro.get();
+    }
+
+    /**
+     * Define o carro neste bloco. Usado para inicialização e para desocupar um bloco.
+     */
+    public void setCarro(Carro carro) {
+        this.carro.set(carro);
+    }
+
+    /**
+     * Tenta ocupar este bloco de forma atômica.
+     * @param carroQueTentaOcupar O carro que está tentando se mover para este bloco.
+     * @return true se o carro conseguiu ocupar o bloco, false caso contrário (outro carro foi mais rápido).
+     */
+    public boolean tryOcupar(Carro carroQueTentaOcupar) {
+        // Tenta atomicamente mudar o valor de null para o novo carro.
+        // Se o valor atual não for null, a operação falha e retorna false.
+        return this.carro.compareAndSet(null, carroQueTentaOcupar);
+    }
+
+
+    public int getIdxLinha() { return idxLinha; }
+    public int getIdxColuna() { return idxColuna; }
+    public boolean isCruzamento() { return isCruzamento; }
     public Directions getDirecao() { return direcao; }
-    public int getIdxLinha() { return linha; }
-    public int getIdxColuna() { return coluna; }
-
-    public boolean isCruzamento() { return direcao.name().contains("CRUZAMENTO"); }
-
-    public boolean isUsarSemaforo() { return usarSemaforo; }
-    public Semaphore getSemaphore() { return semaphore; }
-
-    // Monitor
-    public void entrarMonitor() throws InterruptedException {
-        synchronized (monitor) {
-            while (ocupado) monitor.wait();
-            ocupado = true;
-        }
-    }
-
-    public void sairMonitor() {
-        synchronized (monitor) {
-            ocupado = false;
-            monitor.notify();
-        }
-    }
-
-
-
+    public boolean isSaida() { return isSaida; }
+    public boolean isReservado() { return reservado; }
+    public void setReservado(boolean reservado) { this.reservado = reservado; }
+    public Cruzamento getCruzamentoPai() { return cruzamentoPai; }
+    public void setCruzamentoPai(Cruzamento cruzamentoPai) { this.cruzamentoPai = cruzamentoPai; }
 }
