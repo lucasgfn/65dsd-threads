@@ -6,6 +6,7 @@ import model.estrategia.EstrategiaDeControle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Cruzamento {
 
@@ -31,27 +32,34 @@ public class Cruzamento {
         bloco.setCruzamentoPai(this);
     }
 
-    public boolean tryReservarCaminho(List<MalhaBlocos> caminho) {
+    public boolean tryReservarCaminho() {
+        boolean reservado = false;
         mecanismoControle.entrarRegiaoCritica();
+
         try {
-            for (MalhaBlocos bloco : caminho) {
+            // Verifica se algum bloco está reservado
+            for (MalhaBlocos bloco : blocosDoCruzamento) {
                 if (bloco.isReservado()) {
-                    return false;
+                    return false; // está ocupado
                 }
             }
-            for (MalhaBlocos bloco : caminho) {
+
+            // Reserva todos os blocos
+            for (MalhaBlocos bloco : blocosDoCruzamento) {
                 bloco.setReservado(true);
             }
-            return true;
+            reservado = true;
         } finally {
             mecanismoControle.sairRegiaoCritica();
         }
+
+        return reservado;
     }
 
-    public void liberarCaminho(List<MalhaBlocos> caminho) {
+    public void liberarCaminho() {
         mecanismoControle.entrarRegiaoCritica();
         try {
-            for (MalhaBlocos bloco : caminho) {
+            for (MalhaBlocos bloco : blocosDoCruzamento) {
                 bloco.setReservado(false);
             }
         } finally {

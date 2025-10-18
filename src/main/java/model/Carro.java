@@ -6,6 +6,7 @@ import util.Directions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Carro extends Thread {
 
@@ -42,47 +43,60 @@ public class Carro extends Thread {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.out.println(nome + " foi interrompido e finalizado.");
+        } finally {
+            // 💡 Segurança: garante liberação ao terminar
+            if (cruzamentoReservado != null) {
+                System.out.println(nome + " finalizando e liberando cruzamento " + cruzamentoReservado.getId());
+                cruzamentoReservado.liberarCaminho();
+            }
         }
     }
 
-    private void mover() {
+    private void mover() throws InterruptedException {
         MalhaBlocos proximoBloco = escolherProximoBloco();
+
+        if (caminhoReservado != null && !caminhoReservado.isEmpty()) {
+            proximoBloco = caminhoReservado.remove(0);
+        } else {
+            proximoBloco = escolherProximoBloco();
+        }
+
         if (proximoBloco == null) {
+            if (cruzamentoReservado != null) {
+                System.out.println(nome + " sem movimento — liberando cruzamento " + cruzamentoReservado.getId());
+                cruzamentoReservado.liberarCaminho();
+                cruzamentoReservado = null;
+            }
             return;
         }
 
-        boolean podeMover = true;
-
-        if (proximoBloco.isCruzamento() && this.cruzamentoReservado == null) {
+        // Verifica Cruzamento
+        if (proximoBloco.isCruzamento() && cruzamentoReservado == null) {
             Cruzamento cruzamento = proximoBloco.getCruzamentoPai();
 
-            // --- LÓGICA DE ESCOLHA ALEATÓRIA SIMPLIFICADA É CHAMADA AQUI ---
-            List<MalhaBlocos> caminhoNecessario = calcularCaminhoNoCruzamento(proximoBloco);
-
-            if (caminhoNecessario == null || caminhoNecessario.isEmpty()) {
-                podeMover = false; // Não deveria acontecer em uma malha bem formada
-            } else if (!cruzamento.tryReservarCaminho(caminhoNecessario)) {
-                System.out.println(nome + " AGUARDANDO. Caminho no cruzamento " + cruzamento.getId() + " está ocupado.");
-                podeMover = false;
-            } else {
-                this.cruzamentoReservado = cruzamento;
-                this.caminhoReservado = caminhoNecessario;
-                System.out.println(nome + " RESERVOU caminho no cruzamento " + cruzamento.getId());
+            // Espera ativa para gerar logs
+            while (!cruzamento.tryReservarCaminho()){
+                //System.out.println(nome + " AGUARDANDO cruzamento " + cruzamento.getId());
+                Thread.sleep(50);
             }
+
+            cruzamentoReservado = cruzamento;
+            caminhoReservado = calcularCaminhoNoCruzamento(proximoBloco);
+            System.out.println(nome + " RESERVOU cruzamento " + cruzamento.getId());
+
+            proximoBloco = caminhoReservado.remove(0);
+
         }
 
-        if (!podeMover) {
-            return;
-        }
 
         if (proximoBloco.tryOcupar(this)) {
             MalhaBlocos blocoAnterior = posicaoAtual;
             posicaoAtual = proximoBloco;
             blocoAnterior.setCarro(null);
 
-            if (caminhoReservado != null && !posicaoAtual.isCruzamento()) {
+            if (caminhoReservado != null && !posicaoAtual.isCruzamento() && caminhoReservado.isEmpty()) {
                 System.out.println(nome + " LIBEROU caminho do cruzamento " + cruzamentoReservado.getId());
-                cruzamentoReservado.liberarCaminho(caminhoReservado);
+                cruzamentoReservado.liberarCaminho();
                 this.cruzamentoReservado = null;
                 this.caminhoReservado = null;
             }
@@ -101,6 +115,7 @@ public class Carro extends Thread {
         int j = posicaoAtual.getIdxColuna();
         MalhaBlocos[][] matriz = malha.getMalha();
         Directions d = posicaoAtual.getDirecao();
+
 
         if (d.CIMA == 1 && i - 1 >= 0 && matriz[i-1][j].getCarro() == null) possiveisMovimentos.add(matriz[i-1][j]);
         if (d.BAIXO == 1 && i + 1 < matriz.length && matriz[i+1][j].getCarro() == null) possiveisMovimentos.add(matriz[i+1][j]);
