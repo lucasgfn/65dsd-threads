@@ -170,7 +170,7 @@ public class Carro extends Thread {
             return opcoes.get(random.nextInt(opcoes.size()));
         }
 
-        return null; 
+        return null;
     }
 
     public void parar() {
