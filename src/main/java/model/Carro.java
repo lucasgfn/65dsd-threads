@@ -126,13 +126,6 @@ public class Carro extends Thread {
         return possiveisMovimentos.get(random.nextInt(possiveisMovimentos.size()));
     }
 
-    /**
-     * --- MÉTODO PRINCIPAL REFATORADO E SIMPLIFICADO ---
-     * Calcula um caminho aleatório dentro de um cruzamento simplesmente seguindo as
-     * direções permitidas de cada bloco e escolhendo aleatoriamente em bifurcações.
-     * @param pontoDeEntrada O primeiro bloco do cruzamento onde o carro vai entrar.
-     * @return Uma lista de MalhaBlocos representando o caminho traçado.
-     */
     private List<MalhaBlocos> calcularCaminhoNoCruzamento(MalhaBlocos pontoDeEntrada) {
         List<MalhaBlocos> caminho = new ArrayList<>();
         MalhaBlocos blocoAtual = pontoDeEntrada;
@@ -145,13 +138,7 @@ public class Carro extends Thread {
         return caminho;
     }
 
-    /**
-     * --- NOVO MÉTODO AUXILIAR SIMPLIFICADO ---
-     * A partir de um bloco, olha as direções permitidas por ele e escolhe
-     * aleatoriamente uma delas para ser o próximo passo.
-     * @param bloco O bloco atual no caminho.
-     * @return O próximo MalhaBlocos no caminho.
-     */
+
     private MalhaBlocos proximoBlocoDoCaminhoAleatorio(MalhaBlocos bloco) {
         List<MalhaBlocos> opcoes = new ArrayList<>();
         MalhaBlocos[][] matriz = malha.getMalha();

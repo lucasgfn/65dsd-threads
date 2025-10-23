@@ -37,11 +37,6 @@ public class MalhaBlocos {
         this.carro.set(carro);
     }
 
-    /**
-     * Tenta ocupar este bloco de forma atômica.
-     * @param carroQueTentaOcupar O carro que está tentando se mover para este bloco.
-     * @return true se o carro conseguiu ocupar o bloco, false caso contrário (outro carro foi mais rápido).
-     */
     public boolean tryOcupar(Carro carroQueTentaOcupar) {
         // Tenta atomicamente mudar o valor de null para o novo carro.
         // Se o valor atual não for null, a operação falha e retorna false.
